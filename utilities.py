@@ -1,4 +1,10 @@
+from itertools import product
+
 NUCLEOTIDES = "ATGC"
+
+def generate_all_kmers(k):
+  for pattern_tuple in product(NUCLEOTIDES, repeat=k):
+    yield "".join(pattern_tuple)
 
 def generate_kmers(dna_string, k):
     for i in range(len(dna_string)-k+1):
