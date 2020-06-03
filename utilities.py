@@ -1,6 +1,6 @@
 from itertools import product
 
-NUCLEOTIDES = "ATGC"
+NUCLEOTIDES = "ACGT"
 
 def generate_all_kmers(k):
   for pattern_tuple in product(NUCLEOTIDES, repeat=k):
