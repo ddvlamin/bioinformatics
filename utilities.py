@@ -57,18 +57,21 @@ def create_profile(motifs):
   return profile
 
 def create_laplace_profile(motifs):
-  profile = np.ones((4,len(motifs[0])))
+  profile = 1/(len(motifs)+4) * np.ones((4,len(motifs[0])))
   for coli in range(len(motifs[0])):
     for rowi in range(len(motifs)):
       i = nucl2ind[motifs[rowi][coli]]
-      profile[i, coli] += 1/len(motifs)
+      profile[i, coli] += 1/(len(motifs)+4)
   return profile
+
+def kmer_probabilitiy(kmer, profile):
+    return np.prod([profile[nucl2ind[nucl],i] for i, nucl in enumerate(kmer)])
 
 def profile_most_probable_kmer(dna_string, k, profile):
   max_prob = 0
   most_prob_kmer = dna_string[0:k]
   for kmer in generate_kmers(dna_string, k):
-    prob = np.prod([profile[nucl2ind[nucl],i] for i, nucl in enumerate(kmer)])
+    prob = kmer_probabilitiy(kmer, profile)
     if prob > max_prob:
       max_prob = prob
       most_prob_kmer = kmer
@@ -84,3 +87,12 @@ def score_motifs(motifs):
     c.pop(most_frequent_nucl)
     score += sum(c.values())
   return score
+
+def select_random_motifs(dna, k):
+    t = len(dna)
+    motif_start_indices = randint(0, size=t, high=len(dna[0])-k+1)
+    motifs = []
+    for i, start in enumerate(motif_start_indices):
+        motifs.append(dna[i][start:start+k])
+    return motifs
+ 
