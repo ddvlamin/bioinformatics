@@ -125,26 +125,55 @@ def load_mass():
             aa2mass[aa.strip()] = int(mass.strip())
     return aa2mass
 
-def cyclic_spectrum(peptide, aa2mass):
+def peptide2mass(peptide, aa2mass):
+    return [aa2mass[aa] for aa in peptide]
+    
+def peptides2mass(peptides, aa2mass):
+    masses = list()
+    for peptide in peptides:
+        masses.append(peptide2mass(peptide, aa2mass))
+    return masses
+    
+def get_spectrum(peptide_masses, cyclic=False):
+    """
+    :peptide_masses: list of integers representing the mass of each amino acid in the peptide
+    :cyclic: to compute the linear of cyclic spectrum, i.e. cyclic or linear peptide
+    """
     prefix_mass = [0]
-    for i, aa in enumerate(peptide):
-        prefix_mass.append(prefix_mass[i]+aa2mass[aa])
+    for i, m in enumerate(peptide_masses):
+        prefix_mass.append(prefix_mass[i]+m)
     spectrum = [0]    
-    for i in range(len(peptide)):
-        for j in range(i+1,len(peptide)+1):
+    for i in range(len(peptide_masses)):
+        for j in range(i+1,len(peptide_masses)+1):
             m = prefix_mass[j]-prefix_mass[i]
             spectrum.append(m)
-            if i>0 and j<len(peptide):
+            if cyclic and i>0 and j<len(peptide_masses):
                 spectrum.append(prefix_mass[-1]-m)
-    return sorted(spectrum)
+    return sorted(spectrum)    
 
-def linear_spectrum(peptide, aa2mass):
-    prefix_mass = [0]
-    for i, aa in enumerate(peptide):
-        prefix_mass.append(prefix_mass[i]+aa2mass[aa])
-    spectrum = [0]    
-    for i in range(len(peptide)):
-        for j in range(i+1,len(peptide)+1):
-            m = prefix_mass[j]-prefix_mass[i]
-            spectrum.append(m)
-    return sorted(spectrum)
+def peptide_score(peptide_masses, spectrum, cyclic=False):
+    pep_spectrum = get_spectrum(peptide_masses, cyclic)
+    
+    score = 0
+    spectrum_pointer = 0
+    for m in pep_spectrum:
+        if spectrum_pointer >= len(spectrum):
+            break
+        elif m == spectrum[spectrum_pointer]:
+            score += 1
+            spectrum_pointer += 1
+        elif m < spectrum[spectrum_pointer]:
+            continue
+        else: 
+            while spectrum_pointer<len(spectrum) and m > spectrum[spectrum_pointer]:
+                spectrum_pointer += 1
+            if spectrum_pointer>=len(spectrum):
+                break
+            elif spectrum[spectrum_pointer] == m:
+                score += 1
+                spectrum_pointer += 1
+            else:
+                continue
+                
+    return score
+
